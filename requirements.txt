@@ -1,0 +1,42 @@
+# Chargeback Management System - Requirements
+# Python 3.8+
+
+# Core data processing
+pandas>=1.3.0
+numpy>=1.20.0
+
+# Data validation and transformation
+scikit-learn>=0.24.0
+scipy>=1.7.0
+
+# Time series forecasting
+statsmodels>=0.13.0
+prophet>=1.1.0
+
+# Machine learning (optional for advanced models)
+xgboost>=1.5.0
+
+# Database connectivity
+sqlalchemy>=1.4.0
+psycopg2-binary>=2.9.0  # PostgreSQL
+
+# Data export formats
+pyarrow>=5.0.0  # For Parquet files
+
+# Visualization (for Python visuals in Power BI)
+matplotlib>=3.3.0
+seaborn>=0.11.0
+
+# API and web scraping (for data ingestion)
+requests>=2.26.0
+
+# Testing
+pytest>=6.2.0
+pytest-cov>=2.12.0
+
+# Code quality
+black>=21.0
+flake8>=3.9.0
+
+# Utility
+python-dateutil>=2.8.0
