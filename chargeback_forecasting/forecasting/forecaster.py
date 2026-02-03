@@ -148,8 +148,13 @@ class ChargebackForecaster:
         """
         if start_period is None:
             # Default to next month
-            next_month = datetime.now() + timedelta(days=32)
-            start_period = next_month.strftime('%Y-%m')
+            now = datetime.now()
+            next_month = now.month + 1
+            next_year = now.year
+            if next_month > 12:
+                next_month = 1
+                next_year += 1
+            start_period = f"{next_year:04d}-{next_month:02d}"
         
         forecasts = []
         for i in range(num_periods):

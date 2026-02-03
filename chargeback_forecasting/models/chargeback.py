@@ -60,7 +60,7 @@ class WinLossRatio:
     
     def __post_init__(self):
         """Calculate win/loss rates if not provided."""
-        if self.total_disputes > 0:
+        if self.total_disputes > 0 and (self.win_rate == 0.0 and self.loss_rate == 0.0):
             self.win_rate = self.won_disputes / self.total_disputes
             self.loss_rate = self.lost_disputes / self.total_disputes
 
