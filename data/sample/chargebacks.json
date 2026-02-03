@@ -1,0 +1,122 @@
+[
+  {
+    "transaction_id": "TXN001",
+    "amount": 150.50,
+    "date": "2023-01-15",
+    "reason_code": "FRAUD",
+    "merchant_id": "MERCH_001",
+    "status": "won",
+    "resolved_date": "2023-02-01",
+    "resolution_amount": 150.50
+  },
+  {
+    "transaction_id": "TXN002",
+    "amount": 299.99,
+    "date": "2023-01-20",
+    "reason_code": "NOT_RECEIVED",
+    "merchant_id": "MERCH_002",
+    "status": "lost",
+    "resolved_date": "2023-02-15",
+    "resolution_amount": 0.0
+  },
+  {
+    "transaction_id": "TXN003",
+    "amount": 89.99,
+    "date": "2023-02-10",
+    "reason_code": "DEFECTIVE",
+    "merchant_id": "MERCH_001",
+    "status": "won",
+    "resolved_date": "2023-03-01",
+    "resolution_amount": 89.99
+  },
+  {
+    "transaction_id": "TXN004",
+    "amount": 450.00,
+    "date": "2023-02-25",
+    "reason_code": "FRAUD",
+    "merchant_id": "MERCH_003",
+    "status": "lost",
+    "resolved_date": "2023-03-20",
+    "resolution_amount": 0.0
+  },
+  {
+    "transaction_id": "TXN005",
+    "amount": 125.75,
+    "date": "2023-03-05",
+    "reason_code": "NOT_AUTHORIZED",
+    "merchant_id": "MERCH_002",
+    "status": "won",
+    "resolved_date": "2023-04-01",
+    "resolution_amount": 125.75
+  },
+  {
+    "transaction_id": "TXN006",
+    "amount": 350.00,
+    "date": "2023-03-15",
+    "reason_code": "NOT_RECEIVED",
+    "merchant_id": "MERCH_001",
+    "status": "lost",
+    "resolved_date": "2023-04-10",
+    "resolution_amount": 0.0
+  },
+  {
+    "transaction_id": "TXN007",
+    "amount": 199.99,
+    "date": "2023-04-08",
+    "reason_code": "DEFECTIVE",
+    "merchant_id": "MERCH_002",
+    "status": "won",
+    "resolved_date": "2023-05-01",
+    "resolution_amount": 199.99
+  },
+  {
+    "transaction_id": "TXN008",
+    "amount": 550.00,
+    "date": "2023-04-20",
+    "reason_code": "FRAUD",
+    "merchant_id": "MERCH_003",
+    "status": "won",
+    "resolved_date": "2023-05-15",
+    "resolution_amount": 550.00
+  },
+  {
+    "transaction_id": "TXN009",
+    "amount": 75.50,
+    "date": "2023-05-12",
+    "reason_code": "NOT_AUTHORIZED",
+    "merchant_id": "MERCH_001",
+    "status": "lost",
+    "resolved_date": "2023-06-05",
+    "resolution_amount": 0.0
+  },
+  {
+    "transaction_id": "TXN010",
+    "amount": 425.00,
+    "date": "2023-05-25",
+    "reason_code": "NOT_RECEIVED",
+    "merchant_id": "MERCH_002",
+    "status": "won",
+    "resolved_date": "2023-06-20",
+    "resolution_amount": 425.00
+  },
+  {
+    "transaction_id": "TXN011",
+    "amount": 180.00,
+    "date": "2023-06-10",
+    "reason_code": "DEFECTIVE",
+    "merchant_id": "MERCH_003",
+    "status": "won",
+    "resolved_date": "2023-07-01",
+    "resolution_amount": 180.00
+  },
+  {
+    "transaction_id": "TXN012",
+    "amount": 320.50,
+    "date": "2023-06-22",
+    "reason_code": "FRAUD",
+    "merchant_id": "MERCH_001",
+    "status": "lost",
+    "resolved_date": "2023-07-15",
+    "resolution_amount": 0.0
+  }
+]
