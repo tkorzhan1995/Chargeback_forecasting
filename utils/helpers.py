@@ -96,16 +96,17 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     # Numeric columns: fill with median
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     for col in numeric_cols:
-        df[col].fillna(df[col].median(), inplace=True)
+        median_val = df[col].median()
+        df.loc[:, col] = df[col].fillna(median_val)
     
     # Categorical columns: fill with mode or 'Unknown'
-    categorical_cols = df.select_dtypes(include=['object']).columns
+    categorical_cols = df.select_dtypes(include=['object', 'str']).columns
     for col in categorical_cols:
         mode_val = df[col].mode()
         if len(mode_val) > 0:
-            df[col].fillna(mode_val[0], inplace=True)
+            df.loc[:, col] = df[col].fillna(mode_val[0])
         else:
-            df[col].fillna('Unknown', inplace=True)
+            df.loc[:, col] = df[col].fillna('Unknown')
     
     return df
 

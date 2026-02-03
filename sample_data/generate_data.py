@@ -6,9 +6,18 @@ import numpy as np
 from datetime import datetime, timedelta
 import random
 from pathlib import Path
-from utils import get_logger
+import sys
 
-logger = get_logger(__name__)
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+try:
+    from utils import get_logger
+    logger = get_logger(__name__)
+except ImportError:
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
 
 
 class SampleDataGenerator:
