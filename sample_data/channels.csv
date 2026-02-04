@@ -1,0 +1,6 @@
+channel_id,channel_name,channel_type
+CH001,Website,Online
+CH002,Mobile App,Online
+CH003,In-Store,Physical
+CH004,Phone Order,Call Center
+CH005,Marketplace,Third Party
