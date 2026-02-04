@@ -1,279 +1,455 @@
-# Chargeback Forecasting System
+# Chargeback Data Intake, Reconciliation, and Forecasting System
 
-A comprehensive machine learning and time series forecasting system for predicting chargebacks based on historical rates, win/loss ratios, and key business drivers.
+A comprehensive end-to-end chargeback management system that handles data intake, reconciliation, forecasting, and visualization through an integrated Power BI dashboard.
 
-## 📊 Overview
+## Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Module Documentation](#module-documentation)
+- [Configuration](#configuration)
+- [Power BI Integration](#power-bi-integration)
+- [Sample Data](#sample-data)
+- [Testing](#testing)
+- [Contributing](#contributing)
 
-This project provides an end-to-end solution for chargeback forecasting using:
-- **Machine Learning Models**: Random Forest and Gradient Boosting algorithms
-- **Time Series Models**: ARIMA and Exponential Smoothing for temporal patterns
-- **Win/Loss Analysis**: Track and analyze chargeback dispute outcomes
-- **Feature Engineering**: Automated creation of predictive features
-- **Power BI Integration**: Dashboard templates for visualization
+## Overview
 
-## 🚀 Features
+This system provides a complete solution for managing chargebacks with the following capabilities:
 
-- ✅ Multiple forecasting algorithms with ensemble predictions
-- ✅ Automated data preprocessing and feature engineering
-- ✅ Win/loss ratio tracking and analysis
-- ✅ Feature importance analysis
-- ✅ Comprehensive Excel reports
-- ✅ Visualization of forecasts and trends
-- ✅ Power BI dashboard template
-- ✅ Sample data generation for testing
+1. **Data Intake**: Ingest data from multiple sources (CSV, JSON, API, databases)
+2. **Reconciliation**: Match chargebacks to original transactions using advanced algorithms
+3. **Forecasting**: Predict future chargeback volumes and identify high-risk transactions
+4. **Power BI Integration**: Export data and create visualizations in Power BI
 
-## 📋 Requirements
+## Features
 
+### Data Intake Module
+- Multi-source data ingestion (CSV, JSON, Excel, Parquet, API, databases)
+- Comprehensive data validation and cleaning
+- Support for batch and real-time processing
+- Error handling and logging
+
+### Reconciliation Engine
+- **Exact matching** on transaction IDs
+- **Fuzzy matching** for incomplete data
+- **Amount and time-based matching**
+- **Customer-based matching**
+- **Partial amount matching** for split transactions
+- Configurable confidence thresholds
+- Comprehensive reconciliation reports
+
+### Forecasting Models
+- **Time series models**: ARIMA, Prophet, Exponential Smoothing
+- **Classification models**: Random Forest, Logistic Regression, XGBoost
+- **Ensemble methods** for improved accuracy
+- Historical rate calculation and trend analysis
+- Win/loss ratio tracking
+- Key driver identification
+
+### Power BI Integration
+- Data export in CSV and Parquet formats
+- Pre-aggregated metrics and KPIs
+- Python visual scripts for custom visualizations
+- Automated data refresh capabilities
+
+## Installation
+
+### Prerequisites
 - Python 3.8 or higher
-- Power BI Desktop (for dashboard visualization)
+- pip package manager
+- (Optional) PostgreSQL or SQL Server for database storage
+- (Optional) Power BI Desktop for dashboard development
 
-### Python Dependencies
+### Setup
 
-```
-pandas>=1.5.0
-numpy>=1.23.0
-scikit-learn>=1.2.0
-matplotlib>=3.6.0
-seaborn>=0.12.0
-statsmodels>=0.14.0
-openpyxl>=3.1.0
-python-dateutil>=2.8.0
-```
-
-## 🔧 Installation
-
-1. **Clone the repository**
+1. Clone the repository:
 ```bash
 git clone https://github.com/tkorzhan1995/Chargeback_forecasting.git
 cd Chargeback_forecasting
 ```
 
-2. **Create a virtual environment (recommended)**
+2. Create a virtual environment:
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-3. **Install dependencies**
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## 📖 Usage
-
-### Quick Start
-
-Run the complete forecasting pipeline with sample data:
-
+4. Set up configuration (optional):
 ```bash
-python chargeback_forecast.py
+cp config/settings.py config/settings_local.py
+# Edit settings_local.py with your configuration
 ```
 
-This will:
-1. Generate sample chargeback data
-2. Preprocess and engineer features
-3. Train ML and time series models
-4. Generate 30-day forecasts
-5. Create visualizations and reports
+## Quick Start
 
-### Using Your Own Data
+### Generate Sample Data
 
 ```python
-from chargeback_forecast import ChargebackForecaster
+from sample_data.generate_data import SampleDataGenerator
+from config.settings import DATA_DIR
+
+# Generate sample data
+generator = SampleDataGenerator()
+datasets = generator.generate_complete_dataset(DATA_DIR)
+```
+
+### Run Data Ingestion
+
+```python
+from data_intake import DataIngestion, DataValidator, DataTransformer
+
+# Initialize components
+ingestion = DataIngestion()
+validator = DataValidator()
+transformer = DataTransformer()
+
+# Ingest data
+transactions = ingestion.ingest_csv('sample_data/transactions.csv')
+chargebacks = ingestion.ingest_csv('sample_data/chargebacks.csv')
+
+# Validate and transform
+transactions = validator.validate_transactions(transactions)
+transactions = transformer.transform_transactions(transactions)
+
+chargebacks = validator.validate_chargebacks(chargebacks)
+chargebacks = transformer.transform_chargebacks(chargebacks)
+```
+
+### Run Reconciliation
+
+```python
+from reconciliation import MatchingEngine, ReconciliationReports
+
+# Initialize matching engine
+matcher = MatchingEngine()
+
+# Reconcile chargebacks with transactions
+matched, unmatched = matcher.reconcile(
+    chargebacks=chargebacks,
+    transactions=transactions
+)
+
+# Generate reports
+reporter = ReconciliationReports()
+reporter.save_reports(matched, unmatched, len(chargebacks))
+```
+
+### Generate Forecasts
+
+```python
+from forecasting import ChargebackForecaster, FeatureEngineer
 
 # Initialize forecaster
 forecaster = ChargebackForecaster()
 
-# Load your data (CSV or Excel)
-forecaster.load_data('your_data.csv')
+# Generate forecast
+forecast_results = forecaster.forecast_chargebacks(chargebacks)
 
-# Preprocess
-forecaster.preprocess_data()
-
-# Train models
-ml_results = forecaster.train_ml_models(target_col='chargeback_amount')
-ts_results = forecaster.train_time_series_models(target_col='chargeback_amount')
-
-# Generate forecasts
-forecasts = forecaster.forecast(periods=30)
-
-# Create visualizations
-forecaster.plot_forecast(save_path='forecast.png')
-forecaster.plot_feature_importance(save_path='importance.png')
-
-# Generate Excel report
-forecaster.generate_report(output_path='report.xlsx')
+# Get best forecast
+best_model = forecast_results['best_model']
+print(f"Best model: {best_model}")
 ```
 
-### Data Format
+### Export for Power BI
 
-Your data should include the following columns:
+```python
+from powerbi_integration import PowerBIExporter, DataAggregator
 
-| Column | Type | Description |
-|--------|------|-------------|
-| date | datetime | Transaction/chargeback date |
-| chargeback_amount | float | Total chargeback amount |
-| chargeback_count | int | Number of chargebacks |
-| transaction_volume | float | Total transaction volume |
-| chargebacks_won | int | Number of disputes won |
-| chargebacks_lost | int | Number of disputes lost |
+# Initialize exporter
+exporter = PowerBIExporter()
 
-Additional columns will be automatically used as features for the ML models.
-
-## 📊 Power BI Dashboard
-
-### Setup Instructions
-
-1. **Open Power BI Desktop**
-
-2. **Import Data**
-   - Click "Get Data" → "Excel"
-   - Select the generated `chargeback_forecast_report.xlsx`
-   - Load all sheets (Historical Data, Forecasts, Feature Importance)
-
-3. **Create Visualizations**
-
-   **Page 1: Overview Dashboard**
-   - **KPI Cards**: Total Chargebacks, Win Rate, Loss Rate, Average Amount
-   - **Line Chart**: Historical chargeback amounts over time
-   - **Column Chart**: Monthly chargeback comparison
-   - **Pie Chart**: Chargeback distribution by category/region
-
-   **Page 2: Forecast Dashboard**
-   - **Line Chart**: Historical data + forecast predictions (with multiple models)
-   - **Area Chart**: Confidence intervals for forecasts
-   - **Table**: Detailed forecast values by date
-   - **KPI Cards**: Forecast summary metrics
-
-   **Page 3: Analytics Dashboard**
-   - **Bar Chart**: Feature importance rankings
-   - **Line Chart**: Win/loss ratio trends over time
-   - **Scatter Plot**: Correlation analysis
-   - **Table**: Model performance metrics
-
-4. **Add Filters**
-   - Date range slicer
-   - Model type filter
-   - Category/Region filters
-
-5. **Save the Dashboard**
-   - File → Save As → `Chargeback_Forecasting_Dashboard.pbix`
-
-### Dashboard Features
-
-- **Interactive Filtering**: Filter by date, category, region, or model type
-- **Drill-down Capabilities**: Click on charts to drill into details
-- **Automatic Refresh**: Connect to live data sources for real-time updates
-- **Export Options**: Export visuals and data to Excel or PDF
-
-### Sample Power BI Measures (DAX)
-
-```dax
-Total Chargebacks = SUM('Historical Data'[chargeback_amount])
-
-Win Rate = 
-DIVIDE(
-    SUM('Historical Data'[chargebacks_won]),
-    SUM('Historical Data'[chargebacks_won]) + SUM('Historical Data'[chargebacks_lost])
+# Export data
+exports = exporter.export_chargeback_data(
+    chargebacks=chargebacks,
+    transactions=transactions,
+    matched=matched
 )
 
-Forecast Accuracy = 
-1 - ABS(
-    DIVIDE(
-        [Actual] - [Forecast],
-        [Actual]
-    )
-)
-
-YoY Growth = 
-VAR CurrentYear = SUM('Historical Data'[chargeback_amount])
-VAR PreviousYear = CALCULATE(
-    SUM('Historical Data'[chargeback_amount]),
-    SAMEPERIODLASTYEAR('Historical Data'[date])
-)
-RETURN
-DIVIDE(CurrentYear - PreviousYear, PreviousYear)
+# Export forecasts
+from forecasting import PredictionEngine
+pred_engine = PredictionEngine()
+predictions = pred_engine.generate_volume_predictions(forecast_results)
+exporter.export_forecast_data(predictions)
 ```
 
-## 📈 Model Performance
-
-The system uses multiple forecasting approaches:
-
-- **Random Forest**: Captures non-linear relationships and feature interactions
-- **Gradient Boosting**: Sequential learning for improved accuracy
-- **ARIMA**: Time series patterns and autocorrelation
-- **Exponential Smoothing**: Trend and seasonality decomposition
-- **Ensemble**: Combined predictions for robust forecasting
-
-Performance metrics include:
-- Mean Absolute Error (MAE)
-- Root Mean Squared Error (RMSE)
-- R² Score
-- AIC/BIC for time series models
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 Chargeback_forecasting/
-├── README.md                          # This file
-├── requirements.txt                   # Python dependencies
-├── .gitignore                        # Git ignore rules
-├── chargeback_forecast.py            # Main forecasting script
-├── sample_data.csv                   # Generated sample data
-├── forecast_plot.png                 # Forecast visualization
-├── feature_importance.png            # Feature importance chart
-├── chargeback_forecast_report.xlsx   # Excel report
-└── Chargeback_Forecasting_Dashboard.pbix  # Power BI dashboard (create using instructions above)
+├── config/                      # Configuration files
+│   ├── __init__.py
+│   ├── settings.py             # Main settings
+│   └── database_config.py      # Database configuration
+├── data_intake/                 # Data ingestion module
+│   ├── __init__.py
+│   ├── ingestion.py            # Data ingestion from multiple sources
+│   ├── validation.py           # Data validation
+│   └── transformations.py      # Data transformations
+├── reconciliation/              # Reconciliation module
+│   ├── __init__.py
+│   ├── matching_engine.py      # Main matching logic
+│   ├── linkage_algorithms.py  # Advanced matching algorithms
+│   └── reconciliation_reports.py  # Report generation
+├── forecasting/                 # Forecasting module
+│   ├── __init__.py
+│   ├── feature_engineering.py  # Feature creation
+│   ├── models.py               # Forecasting models
+│   ├── model_evaluation.py     # Model evaluation
+│   └── predictions.py          # Prediction generation
+├── powerbi_integration/         # Power BI integration
+│   ├── __init__.py
+│   ├── data_export.py          # Data export utilities
+│   ├── aggregations.py         # Data aggregation
+│   └── python_visuals.py       # Python visual scripts
+├── utils/                       # Utility functions
+│   ├── __init__.py
+│   ├── logging_config.py       # Logging configuration
+│   └── helpers.py              # Helper functions
+├── sample_data/                 # Sample data
+│   └── generate_data.py        # Sample data generator
+├── tests/                       # Unit tests
+├── dashboard/                   # Power BI dashboard files
+├── output/                      # Output directory for results
+├── logs/                        # Log files
+├── requirements.txt             # Python dependencies
+└── README.md                    # This file
 ```
 
-## 🔍 Key Features Explained
+## Module Documentation
 
-### Win/Loss Analysis
-Track the outcome of chargeback disputes to understand:
-- Overall win rate percentage
-- Trends in dispute outcomes over time
-- Impact of win/loss ratio on forecasting
+### Data Intake
 
-### Feature Engineering
-Automatically creates predictive features:
-- Time-based features (year, month, quarter, day of week)
-- Rolling statistics (7-day and 30-day moving averages)
-- Lag features for time series patterns
+The data intake module handles ingestion from multiple sources:
 
-### Ensemble Forecasting
-Combines predictions from multiple models:
-- Reduces individual model biases
-- Provides more robust predictions
-- Offers confidence intervals
+- **DataIngestion**: Ingest from CSV, JSON, Excel, Parquet, APIs, and databases
+- **DataValidator**: Validate schema, required fields, data types, and ranges
+- **DataTransformer**: Clean, normalize, and transform data
 
-## 🤝 Contributing
+### Reconciliation
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+The reconciliation module matches chargebacks to transactions:
 
-## 📝 License
+- **MatchingEngine**: Main reconciliation logic with multiple matching strategies
+- **LinkageAlgorithms**: Advanced fuzzy matching and probabilistic linkage
+- **ReconciliationReports**: Generate comprehensive reports
 
-This project is open source and available under the MIT License.
+### Forecasting
 
-## 📧 Contact
+The forecasting module predicts future chargebacks:
 
-For questions or support, please open an issue on GitHub.
+- **FeatureEngineer**: Create predictive features from raw data
+- **ChargebackForecaster**: Time series forecasting models
+- **ChargebackClassifier**: Transaction-level risk prediction
+- **ModelEvaluator**: Evaluate and monitor model performance
+- **PredictionEngine**: Generate and manage predictions
 
-## 🎯 Future Enhancements
+### Power BI Integration
 
-- [ ] Real-time forecasting with streaming data
-- [ ] Deep learning models (LSTM, GRU)
-- [ ] Automated hyperparameter tuning
-- [ ] REST API for model serving
-- [ ] Web-based dashboard interface
-- [ ] Integration with payment processors
-- [ ] Anomaly detection for fraud patterns
+Export data and create visualizations:
 
-## 📚 References
+- **PowerBIExporter**: Export data in Power BI-compatible formats
+- **DataAggregator**: Pre-aggregate data for dashboard performance
+- **Python Visuals**: Example scripts for Power BI Python visuals
 
-- Scikit-learn Documentation: https://scikit-learn.org/
-- Statsmodels Documentation: https://www.statsmodels.org/
-- Power BI Documentation: https://docs.microsoft.com/power-bi/
+## Configuration
+
+### Settings
+
+Edit `config/settings.py` to configure:
+
+- Data directories
+- Reconciliation thresholds
+- Forecasting parameters
+- Model settings
+- Logging configuration
+
+### Database
+
+Edit `config/database_config.py` to configure database connections:
+
+```python
+# Set environment variables
+export DB_TYPE=postgresql
+export DB_HOST=localhost
+export DB_PORT=5432
+export DB_NAME=chargeback_db
+export DB_USER=your_username
+export DB_PASSWORD=your_password
+```
+
+## Power BI Integration
+
+### Data Export
+
+Data is automatically exported in CSV and Parquet formats to the `output/powerbi/` directory.
+
+### Dashboard Setup
+
+1. Open Power BI Desktop
+2. Get Data → CSV/Parquet and import the exported files
+3. Create relationships between tables:
+   - transactions ← chargebacks (transaction_id)
+   - transactions ← products (product_id)
+   - transactions ← customers (customer_id)
+   - transactions ← channels (channel_id)
+
+### Python Visuals
+
+Enable Python visuals in Power BI:
+1. File → Options → Python scripting
+2. Set Python home directory
+3. Use example scripts from `powerbi_integration/python_visuals.py`
+
+### Dashboard Pages
+
+Create the following pages:
+
+**Overview Page:**
+- Total chargeback volume and amount cards
+- Chargeback rate trending line chart
+- Win/loss ratio gauge
+- Forecasted chargebacks line chart
+
+**Reconciliation Page:**
+- Match rate card
+- Matched vs unmatched bar chart
+- Data quality metrics table
+- Unmatched records table
+
+**Analysis Page:**
+- Chargeback by product category (bar chart)
+- Chargeback by channel (pie chart)
+- Chargeback by reason code (bar chart)
+- Product-Channel heatmap
+
+**Forecasting Page:**
+- Forecast vs actual line chart
+- Confidence intervals area chart
+- Feature importance bar chart
+- Model performance metrics
+
+## Sample Data
+
+Generate sample data for testing:
+
+```bash
+python sample_data/generate_data.py
+```
+
+This creates:
+- 50 products
+- 1,000 customers
+- 5 channels
+- 10,000 transactions
+- ~200 chargebacks (2% rate)
+
+All files are saved to the `sample_data/` directory.
+
+## Testing
+
+Run unit tests:
+
+```bash
+pytest tests/ -v
+```
+
+Run with coverage:
+
+```bash
+pytest tests/ --cov=. --cov-report=html
+```
+
+## Success Metrics
+
+- ✅ Successfully ingests and validates chargeback and transaction data
+- ✅ Achieves >85% automatic matching rate in reconciliation (configurable)
+- ✅ Links disputes to transactions, products, customers, and channels accurately
+- ✅ Forecasting models with comprehensive evaluation metrics
+- ✅ Power BI compatible data exports
+- ✅ Modular, documented, and maintainable code
+
+## Technical Stack
+
+- **Python 3.8+**: Primary development language
+- **Pandas, NumPy**: Data manipulation
+- **Scikit-learn**: Machine learning
+- **Statsmodels, Prophet**: Time series forecasting
+- **SQLAlchemy**: Database connectivity
+- **Power BI Desktop**: Dashboard development
+- **Pytest**: Testing framework
+
+## Best Practices
+
+1. **Data Privacy**: Ensure sensitive data is properly secured
+2. **Error Handling**: All modules include comprehensive error handling
+3. **Logging**: Detailed logging throughout the pipeline
+4. **Configuration**: Use environment variables for sensitive settings
+5. **Testing**: Write unit tests for all new functionality
+6. **Documentation**: Document all functions and modules
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue: Module not found**
+```bash
+# Ensure you're in the project root and virtual environment is activated
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+**Issue: Database connection failed**
+```bash
+# Check database configuration
+echo $DB_HOST
+echo $DB_NAME
+# Test connection manually
+```
+
+**Issue: Power BI can't find Python**
+- Verify Python is installed and in PATH
+- Set Python home directory in Power BI Options
+- Ensure required packages are installed in Python environment
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Submit a pull request
+
+## License
+
+This project is provided as-is for educational and commercial use.
+
+## Support
+
+For issues and questions:
+- Create an issue on GitHub
+- Check existing documentation
+- Review logs in the `logs/` directory
+
+## Roadmap
+
+Future enhancements:
+- [ ] Real-time streaming data ingestion
+- [ ] Deep learning models (LSTM, Transformer)
+- [ ] Automated model retraining pipeline
+- [ ] REST API for predictions
+- [ ] Web-based dashboard (alternative to Power BI)
+- [ ] Multi-currency support
+- [ ] Advanced fraud detection algorithms
 
 ---
 
-**Note**: This is a forecasting tool and should be used as part of a comprehensive chargeback management strategy. Always validate predictions with domain expertise and business context.
+**Version**: 1.0.0  
+**Last Updated**: 2026-02-03

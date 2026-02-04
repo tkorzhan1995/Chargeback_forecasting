@@ -19,36 +19,65 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# Virtual environments
+# Virtual Environment
 venv/
-env/
 ENV/
-env.bak/
-venv.bak/
+env/
+.venv
 
-# IDE
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
 
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# Data files
-*.csv
-*.xlsx
-!sample_data.csv
+# Logs
+logs/
+*.log
 
 # Output files
 output/
-reports/
-*.png
-*.jpg
-*.pdf
+*.sqlite
+*.db
+
+# Data files (except sample data)
+data/
+!sample_data/
+
+# Power BI
+*.pbix
+*.pbit
 
 # OS
-.DS_Store
 Thumbs.db
+.DS_Store
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Environment variables
+.env
+.env.local
+
+# Model files (large)
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
