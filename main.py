@@ -1,187 +1,193 @@
+#!/usr/bin/env python3
 """
-Main execution script for the Chargeback Management System.
-Demonstrates end-to-end workflow.
+Main application for Chargeback Forecasting.
+
+This script demonstrates how to use the chargeback forecasting system
+to analyze historical data and generate forecasts.
 """
+import argparse
 import sys
 from pathlib import Path
 
-# Add project root to path
-project_root = Path(__file__).parent
-sys.path.insert(0, str(project_root))
+from chargeback_forecasting.utils.data_loader import (
+    load_chargebacks_from_json,
+    load_transactions_from_json,
+    calculate_transaction_counts,
+    export_forecast_to_csv,
+    export_forecast_to_json
+)
+from chargeback_forecasting.forecasting.forecaster import ChargebackForecaster
+from chargeback_forecasting.analysis.historical_rates import HistoricalRateCalculator
+from chargeback_forecasting.analysis.win_loss import WinLossAnalyzer
+from chargeback_forecasting.analysis.key_drivers import KeyDriverAnalyzer
 
-from data_intake import DataIngestion, DataValidator, DataTransformer
-from reconciliation import MatchingEngine, ReconciliationReports
-from forecasting import ChargebackForecaster, FeatureEngineer, PredictionEngine
-from powerbi_integration import PowerBIExporter, DataAggregator
-from sample_data.generate_data import SampleDataGenerator
-from utils import setup_logging, get_logger
-from config.settings import DATA_DIR
 
-# Setup logging
-setup_logging()
-logger = get_logger(__name__)
+def print_banner():
+    """Print application banner."""
+    print("=" * 70)
+    print("CHARGEBACK FORECASTING SYSTEM")
+    print("=" * 70)
+    print()
+
+
+def print_historical_analysis(chargebacks, transactions, total_transactions):
+    """Print historical analysis results."""
+    print("\n" + "=" * 70)
+    print("HISTORICAL ANALYSIS")
+    print("=" * 70)
+    
+    # Historical rates
+    rate_calc = HistoricalRateCalculator(chargebacks, total_transactions)
+    monthly_rates = rate_calc.calculate_monthly_rates()
+    
+    print("\nMonthly Chargeback Rates:")
+    print(f"{'Period':<15} {'Transactions':<15} {'Chargebacks':<15} {'Rate':<10}")
+    print("-" * 70)
+    for rate in monthly_rates[-6:]:  # Show last 6 months
+        print(f"{rate.period:<15} {rate.total_transactions:<15,} {rate.total_chargebacks:<15} {rate.chargeback_rate:<10.2%}")
+    
+    avg_rate = rate_calc.get_average_rate()
+    print(f"\nAverage Chargeback Rate: {avg_rate:.4%}")
+    
+    # Win/Loss analysis
+    wl_analyzer = WinLossAnalyzer(chargebacks)
+    monthly_ratios = wl_analyzer.calculate_monthly_ratios()
+    
+    print("\n\nWin/Loss Ratios:")
+    print(f"{'Period':<15} {'Total':<10} {'Won':<10} {'Lost':<10} {'Win Rate':<10}")
+    print("-" * 70)
+    for ratio in monthly_ratios[-6:]:  # Show last 6 months
+        print(f"{ratio.period:<15} {ratio.total_disputes:<10} {ratio.won_disputes:<10} {ratio.lost_disputes:<10} {ratio.win_rate:<10.2%}")
+    
+    overall_win = wl_analyzer.get_overall_win_rate()
+    overall_loss = wl_analyzer.get_overall_loss_rate()
+    print(f"\nOverall Win Rate: {overall_win:.2%}")
+    print(f"Overall Loss Rate: {overall_loss:.2%}")
+    
+    # Key drivers
+    driver_analyzer = KeyDriverAnalyzer(chargebacks, transactions)
+    top_drivers = driver_analyzer.get_top_drivers(n=5)
+    
+    print("\n\nTop 5 Key Drivers:")
+    print(f"{'Driver':<30} {'Type':<15} {'Impact':<15} {'Correlation':<15}")
+    print("-" * 70)
+    for driver in top_drivers:
+        print(f"{driver.driver_name:<30} {driver.driver_type:<15} {driver.impact_score:<15.4f} {driver.correlation:<15.4f}")
+
+
+def print_forecast(forecast_result):
+    """Print a single forecast result."""
+    print(f"\n{'Period:':<30} {forecast_result.forecast_period}")
+    print(f"{'Expected Chargebacks:':<30} {forecast_result.expected_chargebacks:.2f}")
+    print(f"{'Expected Rate:':<30} {forecast_result.expected_chargeback_rate:.4%}")
+    print(f"{'95% Confidence Interval:':<30} {forecast_result.confidence_interval_low:.2f} - {forecast_result.confidence_interval_high:.2f}")
+    print(f"{'Expected Win Rate:':<30} {forecast_result.expected_win_rate:.2%}")
+    print(f"{'Expected Loss Rate:':<30} {forecast_result.expected_loss_rate:.2%}")
+    
+    if forecast_result.key_drivers:
+        print("\nTop Key Drivers:")
+        for i, driver in enumerate(forecast_result.key_drivers[:3], 1):
+            print(f"  {i}. {driver.driver_name} (Impact: {driver.impact_score:.4f})")
+    
+    print("\nAssumptions:")
+    for assumption in forecast_result.assumptions:
+        print(f"  - {assumption}")
 
 
 def main():
-    """Main execution function."""
-    logger.info("=" * 60)
-    logger.info("Starting Chargeback Management System")
-    logger.info("=" * 60)
+    """Main application entry point."""
+    parser = argparse.ArgumentParser(
+        description='Chargeback Forecasting System'
+    )
+    parser.add_argument(
+        '--chargebacks',
+        default='data/sample/chargebacks.json',
+        help='Path to chargebacks data file (JSON)'
+    )
+    parser.add_argument(
+        '--transactions',
+        default='data/sample/transactions.json',
+        help='Path to transactions data file (JSON)'
+    )
+    parser.add_argument(
+        '--forecast-periods',
+        type=int,
+        default=3,
+        help='Number of periods to forecast (default: 3)'
+    )
+    parser.add_argument(
+        '--expected-transactions',
+        type=int,
+        default=600,
+        help='Expected transactions per period (default: 600)'
+    )
+    parser.add_argument(
+        '--method',
+        choices=['simple_average', 'weighted_average', 'trend'],
+        default='weighted_average',
+        help='Forecasting method (default: weighted_average)'
+    )
+    parser.add_argument(
+        '--output-csv',
+        help='Export forecast to CSV file'
+    )
+    parser.add_argument(
+        '--output-json',
+        help='Export forecast to JSON file'
+    )
     
-    # Step 1: Generate Sample Data
-    logger.info("\n[1/6] Generating sample data...")
-    generator = SampleDataGenerator()
-    datasets = generator.generate_complete_dataset(DATA_DIR)
-    logger.info(f"✓ Generated {len(datasets)} datasets")
+    args = parser.parse_args()
     
-    # Step 2: Data Intake and Validation
-    logger.info("\n[2/6] Ingesting and validating data...")
-    ingestion = DataIngestion()
-    validator = DataValidator()
-    transformer = DataTransformer()
+    print_banner()
     
     # Load data
-    transactions = datasets['transactions']
-    chargebacks = datasets['chargebacks']
-    products = datasets['products']
-    customers = datasets['customers']
-    channels = datasets['channels']
-    
-    # Validate
-    transactions = validator.validate_transactions(transactions)
-    chargebacks = validator.validate_chargebacks(chargebacks)
-    
-    # Transform
-    transactions = transformer.transform_transactions(transactions)
-    chargebacks = transformer.transform_chargebacks(chargebacks)
-    
-    logger.info(f"✓ Processed {len(transactions)} transactions")
-    logger.info(f"✓ Processed {len(chargebacks)} chargebacks")
-    
-    # Step 3: Reconciliation
-    logger.info("\n[3/6] Running reconciliation...")
-    matcher = MatchingEngine()
-    
-    matched, unmatched = matcher.reconcile(
-        chargebacks=chargebacks,
-        transactions=transactions,
-        products=products,
-        customers=customers,
-        channels=channels
-    )
-    
-    match_rate = len(matched) / len(chargebacks) * 100 if len(chargebacks) > 0 else 0
-    logger.info(f"✓ Match rate: {match_rate:.2f}% ({len(matched)}/{len(chargebacks)})")
-    
-    # Generate reconciliation reports
-    reporter = ReconciliationReports()
-    reporter.save_reports(
-        matched=matched,
-        unmatched=unmatched,
-        total_chargebacks=len(chargebacks),
-        chargebacks=chargebacks,
-        transactions=transactions
-    )
-    logger.info("✓ Reconciliation reports generated")
-    
-    # Step 4: Feature Engineering
-    logger.info("\n[4/6] Engineering features...")
-    engineer = FeatureEngineer()
-    
-    # Create features for transactions
-    transactions_with_features = engineer.build_feature_set(
-        transactions=transactions,
-        chargebacks=chargebacks,
-        include_lag=False,  # Skip lag features for demo
-        include_rolling=False  # Skip rolling features for demo
-    )
-    
-    logger.info(f"✓ Created {len(transactions_with_features.columns)} features")
-    
-    # Step 5: Forecasting
-    logger.info("\n[5/6] Generating forecasts...")
-    forecaster = ChargebackForecaster()
-    
+    print("Loading data...")
     try:
-        # Generate volume forecast
-        forecast_results = forecaster.forecast_chargebacks(
-            df=chargebacks,
-            date_col='chargeback_date',
-            models=['moving_average', 'exp_smoothing']  # Use simpler models for demo
-        )
-        
-        best_model = forecast_results.get('best_model', 'Ensemble')
-        logger.info(f"✓ Forecasts generated using {best_model} model")
-        
-        # Generate predictions
-        pred_engine = PredictionEngine()
-        predictions = pred_engine.generate_volume_predictions(forecast_results)
-        pred_engine.save_predictions(predictions)
-        logger.info(f"✓ Generated {len(predictions)} prediction records")
-        
+        chargebacks = load_chargebacks_from_json(args.chargebacks)
+        transactions = load_transactions_from_json(args.transactions)
+        total_transactions = calculate_transaction_counts(transactions)
+        print(f"✓ Loaded {len(chargebacks)} chargebacks")
+        print(f"✓ Loaded {len(transactions)} transactions")
+    except FileNotFoundError as e:
+        print(f"Error: Could not find data file: {e}")
+        sys.exit(1)
     except Exception as e:
-        logger.warning(f"Forecasting encountered an error: {str(e)}")
-        logger.warning("Continuing with remaining steps...")
-        predictions = None
+        print(f"Error loading data: {e}")
+        sys.exit(1)
     
-    # Step 6: Export for Power BI
-    logger.info("\n[6/6] Exporting data for Power BI...")
-    exporter = PowerBIExporter()
+    # Print historical analysis
+    print_historical_analysis(chargebacks, transactions, total_transactions)
     
-    # Export main datasets
-    exports = exporter.export_chargeback_data(
-        chargebacks=chargebacks,
-        transactions=transactions,
-        matched=matched
+    # Create forecaster
+    forecaster = ChargebackForecaster(chargebacks, transactions, total_transactions)
+    
+    # Generate forecasts
+    print("\n" + "=" * 70)
+    print("FORECAST RESULTS")
+    print("=" * 70)
+    
+    forecasts = forecaster.forecast_multiple_periods(
+        num_periods=args.forecast_periods,
+        expected_transactions_per_period=args.expected_transactions
     )
     
-    # Export additional reference data
-    exporter.export_dataframe(products, 'products')
-    exporter.export_dataframe(customers, 'customers')
-    exporter.export_dataframe(channels, 'channels')
+    for i, forecast in enumerate(forecasts, 1):
+        print(f"\n--- Forecast #{i} ---")
+        print_forecast(forecast)
     
-    # Export predictions if available
-    if predictions is not None:
-        exporter.export_forecast_data(predictions)
+    # Export if requested
+    if args.output_csv:
+        export_forecast_to_csv(forecasts, args.output_csv)
+        print(f"\n✓ Forecast exported to {args.output_csv}")
     
-    # Create aggregated metrics
-    aggregator = DataAggregator()
-    kpis = aggregator.create_kpi_summary(
-        chargebacks=chargebacks,
-        transactions=transactions,
-        matched=matched
-    )
-    exporter.export_aggregated_metrics(kpis)
+    if args.output_json:
+        export_forecast_to_json(forecasts, args.output_json)
+        print(f"✓ Forecast exported to {args.output_json}")
     
-    # Create manifest
-    exporter.create_powerbi_dataset_manifest(exports)
-    
-    logger.info("✓ All data exported for Power BI")
-    
-    # Summary
-    logger.info("\n" + "=" * 60)
-    logger.info("EXECUTION SUMMARY")
-    logger.info("=" * 60)
-    logger.info(f"Transactions processed: {len(transactions):,}")
-    logger.info(f"Chargebacks processed: {len(chargebacks):,}")
-    logger.info(f"Match rate: {match_rate:.2f}%")
-    logger.info(f"Unmatched chargebacks: {len(unmatched)}")
-    logger.info(f"Chargeback rate: {len(chargebacks)/len(transactions)*100:.2f}%")
-    
-    if kpis:
-        logger.info(f"\nKey Metrics:")
-        logger.info(f"  Total chargeback amount: ${kpis.get('total_chargeback_amount', 0):,.2f}")
-        logger.info(f"  Average chargeback amount: ${kpis.get('avg_chargeback_amount', 0):,.2f}")
-    
-    logger.info("\n✓ All tasks completed successfully!")
-    logger.info("=" * 60)
-    
-    return 0
+    print("\n" + "=" * 70)
+    print("FORECAST COMPLETE")
+    print("=" * 70)
 
 
 if __name__ == '__main__':
-    try:
-        sys.exit(main())
-    except Exception as e:
-        logger.error(f"Fatal error: {str(e)}", exc_info=True)
-        sys.exit(1)
+    main()
