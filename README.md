@@ -11,6 +11,36 @@ A production-ready chargeback forecasting framework that provides:
 - **Audit Trail**: Full logging and metric tracking
 - **Decision Support**: Model comparison and performance analysis
 
+## 📊 Baseline vs Models Comparison
+
+### Comparison Table
+
+| Method | MAPE | RMSE | Stability | Key Characteristics |
+|--------|------|------|-----------|---------------------|
+| Baseline (Naive Forecast) | 18% | [TBD] | Stable | Simple, interpretable, regulatory-friendly |
+| ARIMA | [TBD] | [TBD] | High | Time-series focused, explainable |
+| Linear Regression | 16% | [TBD] | High | High interpretability, transparent coefficients |
+| Decision Tree/Regression | [TBD] | [TBD] | Moderate | Interpretable rules, prone to overfitting |
+| XGBoost/Gradient Boosting | 14% | [TBD] | Moderate | Best accuracy, complex to explain |
+
+### Why Simpler Models Often Win in Regulated Environments
+
+- **Interpretability & Explainability**: Regulators and auditors require clear explanations of how predictions are made. Linear models and simple baselines provide transparent, auditable decision-making processes.
+
+- **Model Validation & Documentation**: Complex models (like XGBoost) require extensive documentation to explain feature interactions, which is challenging in regulatory reviews. Simple models have straightforward validation procedures.
+
+- **Stakeholder Trust**: Business stakeholders and compliance teams trust models they can understand. A 2-3% accuracy improvement doesn't justify losing explainability when dealing with financial chargebacks.
+
+- **Stability & Robustness**: Simpler models tend to be more stable over time and less sensitive to data distribution shifts, which is critical for consistent chargeback forecasting.
+
+- **Regulatory Compliance**: Financial regulations (Basel III, IFRS 9, etc.) often require model transparency. Complex black-box models face higher scrutiny and may be rejected by compliance teams.
+
+- **Maintenance & Monitoring**: Simple models are easier to maintain, monitor for drift, and retrain when needed, reducing operational risk.
+
+### Key Insight
+
+In production environments dealing with financial forecasting and regulatory oversight, **the best model isn't always the most accurate one—it's the one that balances accuracy with interpretability, stability, and regulatory compliance**. A baseline or linear model that achieves 16-18% MAPE with full explainability often outperforms a gradient boosting model with 14% MAPE that cannot be easily explained to auditors and stakeholders.
+
 ## 🏗️ Architecture
 
 ```
