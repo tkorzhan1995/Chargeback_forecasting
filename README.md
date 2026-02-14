@@ -41,6 +41,22 @@ A production-ready chargeback forecasting framework that provides:
 
 In production environments dealing with financial forecasting and regulatory oversight, **the best model isn't always the most accurate one—it's the one that balances accuracy with interpretability, stability, and regulatory compliance**. A baseline or linear model that achieves 16-18% MAPE with full explainability often outperforms a gradient boosting model with 14% MAPE that cannot be easily explained to auditors and stakeholders.
 
+### Business Interpretation
+
+A 12–15% reduction in forecast variance can meaningfully improve planning accuracy for a €50–150M portfolio and reduce buffer over-allocation. By improving forecast precision:
+
+- **Capital Efficiency**: Reducing MAPE from 18% (baseline) to 14-16% (optimized models) means tighter prediction intervals, allowing finance teams to allocate reserves more efficiently without over-provisioning.
+
+- **Portfolio Impact**: For a €100M annual chargeback portfolio, a 4% MAPE improvement translates to approximately €4M in more accurate reserve allocation, reducing unnecessary capital lock-up.
+
+- **Risk Management**: Better forecasts enable more proactive chargeback mitigation strategies, allowing teams to identify high-risk merchants or transactions earlier.
+
+- **Strategic Planning**: Improved accuracy supports better budgeting, cash flow planning, and regulatory capital requirements (e.g., Basel III provisions).
+
+- **Operational Benefits**: Reduced forecast variance minimizes emergency adjustments, improves stakeholder confidence, and supports more reliable financial reporting.
+
+**Key Takeaway**: Even modest improvements in forecast accuracy at scale can yield substantial financial and operational benefits, making model selection and continuous improvement critical for enterprise chargeback management.
+
 ## 🏗️ Architecture
 
 ```
